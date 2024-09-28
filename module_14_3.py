@@ -23,7 +23,7 @@ class UserState(StatesGroup):
     weight = State()
 
 
-TOKEN = "7240600592:AAFXO1eHt9-vm58Y9DGdMEwJGykDE7HMpNY"
+TOKEN = "Токен"
 
 dp = Dispatcher()
 
