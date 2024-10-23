@@ -1,38 +1,51 @@
-import threading
+from threading import Thread, Lock
+import random
+from time import sleep
 
-class BankAccount:
-    def __init__(self, initial_balance=0):
-        self.balance = initial_balance
-        self.lock = threading.Lock()
 
-def deposit(self, amount):
-    with self.lock:
-        self.balance += amount
-        print(f"Deposited {amount}, new balance is {self.balance}")
+class Bank(Thread):
+    def __init__(self):
+        super().__init__()
+        self.balance = 0
+        self.lock = Lock()
 
-def withdraw(self, amount):
-    with self.lock:
-        if amount > self.balance:
-            print("Insufficient funds")
-        else:
-            self.balance -= amount
-            print(f"Withdrew {amount}, new balance is {self.balance}")
 
-def deposit_task(account, amount):
-    for _ in range(5):
-        account.deposit(amount)
+    def deposit(self):
+        print(f'На депозите {self.balance} средств') # проверка количества средств
 
-def withdraw_task(account, amount):
-    for _ in range(5):
-        account.withdraw(amount)
+        for i in range(100):
+            dep = random.randint(50, 500) # случайное число (сумма пополнения)
+            self.balance += dep
+            print(f'Пополнение: {dep}. Баланс: {self.balance}')
 
-account = BankAccount(1000)
+            if self.balance >= 500 and self.lock.locked():
+                self.lock.release()
+                print(f'Пополнен: {dep}. Баланс: {self.balance}')
+            # else:
+            #     print(f'депозит закрыт на снятие, Баланс меньше 500')
+    sleep(0.001)
 
-deposit_thread = threading.Thread(target=deposit_task, args=(account, 100))
-withdraw_thread = threading.Thread(target=withdraw_task, args=(account, 150))
+    def take(self):
 
-deposit_thread.start()
-withdraw_thread.start()
+        for i in range(100):
+            tk = random.randint(50, 500)
+            print(f'Запрос на {tk}')
 
-deposit_thread.join()
-withdraw_thread.join()
+            if tk <= self.balance:
+                self.balance = self.balance - tk
+                print(f'Снятие: {tk}. Баланс: {self.balance}')
+
+            else:
+                print('Запрос отклонён, недостаточно средств')
+                self.lock.acquire()
+
+bk = Bank()
+th1 = Thread(target=Bank.deposit, args=(bk,))
+th2 = Thread(target=Bank.take, args=(bk,))
+
+th1.start()
+th2.start()
+th1.join()
+th2.join()
+
+print(f'Итоговый баланс: {bk.balance}')
